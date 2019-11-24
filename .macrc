@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+# Suppress warning after Catalina
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+if ! type -a source_file >&/dev/null;then
+  source_file() {
+    if [ $# -lt 1 ];then
+      echo "ERROR!!! source_file is called w/o an argument"
+      return
+    fi
+    arg="$1"
+    shift
+    if [ -r "$arg" ]; then
+      source "$arg"
+    fi
+  } # }}} Function for sourcing with precheck of the file
+fi
+
+## Use Vim in MacVim, if better
+#*********
+#**done at .bashrc like:
+#**      if [[ "$OSTYPE" =~ "darwin" ]] && [ -d /Applications/MacVim.app/Contents/MacOS ];then
+#**        export PATH=$HOME/usr/local/bin:$HOME/usr/bin:/Applications/MacVim.app/Contents/MacOS:/usr/local/bin:$PATH
+#**      else
+#vimversion=`vim --version`
+#vimvn=`echo "$vimversion"|grep "Vi IMproved"|cut -d' ' -f 5` 2>/dev/null
+#vimpatches=`echo "$vimversion"|grep "patches"|cut -d' ' -f 3|cut -d'-' -f2` 2>/dev/null
+#vimluacheck=`echo "$vimversion"|grep lua|grep -v Linking|awk '{split($0,tmp,"lua")}{print substr(tmp[1],length(tmp[1]),1)}'`
+#mvimversion=`mvim --version`
+#mvimvn=`echo "$mvimversion"|grep "Vi IMproved"|cut -d' ' -f 5` 2>/dev/null
+#mvimpatches=`echo "$mvimversion"|grep "patches"|cut -d' ' -f 3|cut -d'-' -f2` 2>/dev/null
+#mvimluacheck=`echo "$mvimversion"|grep lua|grep -v Linking|awk '{split($0,tmp,"lua")}{print substr(tmp[1],length(tmp[1]),1)}'`
+#
+#mvimflag=0
+#if [ "$mvimluacheck" = "+" -a "$vimluacheck" = "+" ];then
+#  mvimflag=2
+#elif [ "$mvimluacheck" = "-" -a "$vimluacheck" = "-" ];then
+#  mvimflag=2
+#elif [ "$mvimluacheck" = "+" -a "$vimluacheck" = "-" ];then
+#  mvimflag=1
+#else
+#  mvimflag=0
+#fi
+#
+#if [ $mvimflag -eq 2 ];then
+#  vimret=`echo -n '$xx = '$mvimvn' <=> '$vimvn';print "$xx \n"'|perl`
+#  if [ $vimret -eq 1 ];then
+#    mvimflag=1
+#  elif [ -z "$mvimpatches" ];then
+#    mvimflag=0
+#  elif [ -z "$vimpatches" ];then
+#    mvimflag=1
+#  else
+#    vimret=`echo -n '$xx = '$mvimpatches' <=> '$vimpatches';print "$xx \n"'|perl`
+#    if [ $vimret -eq 1 ];then
+#      mvimflag=1
+#    else
+#      mvimflag=0
+#    fi
+#  fi
+#fi
+#
+#if [ $mvimflag -eq 1 ];then
+#  alias vim="mvim"
+#  alias vimdiff="mvimdiff"
+#fi
+
+# ssh agent
+if [ -z "$SSH_AUTH_SOCK" ];then
+  #export SSH_AUTH_SOCK=`/usr/sbin/lsof|grep ssh-agent|grep Listeners|awk '{print $8}'`
+  sock_tmp=($(ls -t /tmp/com.apple.launchd.*/Listeners 2>/dev/null))
+  if [ ${#sock_tmp[@]} -eq 0 ];then
+    # For Mavericks or older OS X
+    sock_tmp=($(ls -t /tmp/launchd-*/Listeners 2>/dev/null))
+  fi
+  for s in "${sock_tmp[@]}";do
+    export SSH_AUTH_SOCK=$s
+    ssh-add -l >& /dev/null
+    ret=$?
+    if [ $ret -eq 0 ] || [ $ret -eq 1 ];then
+      break
+    fi
+    unset SSH_AUTH_SOCK
+  done
+  unset sock_tmp
+fi
+
+# JAVA_HOME
+export JAVA_HOME=$(/usr/libexec/java_home)
+if [ -f /System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc ];then
+  export PATH=$PATH:/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources
+  _add_path PATH "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources" 1
+fi
+
+# For Gem
+if [ -d /usr/local/gems ];then
+  export GEM_HOME=/usr/local/gems
+  export PATH=$GEM_HOME/bin:$PATH
+  _add_path PATH "$GEM_HOME/bin"
+fi

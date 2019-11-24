@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# settings {{{
+# for cmd.exe, change to UTF8 (default is 932:sjis)
+# 65000 UTF-7
+# 65001 UTF-8
+# 50220 JIS
+# 20932 EUC-JP
+#   932 SJIS
+chcp.com 65001 >/dev/null
+
+# COMSPEC (especially for Octopress)
+export COMSPEC=/mnt/c/Windows/System32/cmd.exe
+
+# umask
+umask 0022
+
+# ssh-agent on Windows10
+[ -n "${WSL_AUTH_SOCK}" ] && export SSH_AUTH_SOCK=${WSL_AUTH_SOCK}
+
+# Homebrew on Linux
+test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+
+# homebrew python integer error
+alias python=$(type -p python3)
+
+# display
+# export DISPLAY=${DISPLAY:=":0.0"}
+
+# macOS 'pbcopy', 'pbpaste'
+alias pbcopy="win32yank.exe -i"
+alias pbpaste="win32yank.exe -o"
+
+# macOS 'open'
+alias open="cmd.exe /c start"
+
+# Chocolatey
+chocolatey="/mnt/c/ProgramData/chocolatey/bin/choco.exe"
+alias choco="$chocolatey"
+alias cinst="$chocolatey install"
+alias clist="$chocolatey list"
+alias cuninst="$chocolatey uninstall"
+
+# Ignore ntuser files and Windows specific symbolic links and folders
+# refers to http://superuser.com/questions/650322/ignore-ntuser-dat-files-when-ls-on-git-bash
+LS_COMMON="-hG"
+LS_COMMON="$LS_COMMON --color=auto --show-control-char"
+LS_COMMON="$LS_COMMON -I NTUSER.DAT\* -I ntuser.dat\*"
+LS_COMMON="$LS_COMMON -I ntuser.ini"
+LS_COMMON="$LS_COMMON -I ntuser.pol"
+LS_COMMON="$LS_COMMON -I Application\ Data\*"
+LS_COMMON="$LS_COMMON -I Cookies\*"
+LS_COMMON="$LS_COMMON -I Local\ Settings\*"
+LS_COMMON="$LS_COMMON -I NetHood\*"
+LS_COMMON="$LS_COMMON -I PrintHood\*"
+LS_COMMON="$LS_COMMON -I Recent\*"
+LS_COMMON="$LS_COMMON -I SendTo\*"
+LS_COMMON="$LS_COMMON -I Templates\*"
+LS_COMMON="$LS_COMMON -I Start\ Menu\*"
+LS_COMMON="$LS_COMMON -I スタート\ メニュー\*"
+LS_COMMON="$LS_COMMON -I AppData\*"
+LS_COMMON="$LS_COMMON -I My\ Documents\*"
+LS_COMMON="$LS_COMMON -I Links\*"
+LS_COMMON="$LS_COMMON -I Thumbs.db"
+LS_COMMON="$LS_COMMON -I Favorites\*"
+LS_COMMON="$LS_COMMON -I Searches\*"
+LS_COMMON="$LS_COMMON -I 3D\ Objects\*"
+LS_COMMON="$LS_COMMON -I Saved\ Games\*"
+alias ls="ls $LS_COMMON"
+alias la='ls -A --color=auto --show-control-char'
+alias ll='ls -lv --group-directories-first'
+alias lla='ls -A --color=auto --show-control-char -lv --group-directories-first'
+alias lt='ls -altr'
+
+# unset tmp/temp (=C:\Users\user\AppData\Local\Temp)
+# for Chocolatey (otherwise it complains...)
+#unset tmp temp
+
+#}}}
